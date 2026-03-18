@@ -22,4 +22,46 @@ public class ReservationAddOn {
 
     public ReservationAddOn(){}
 
+    public Integer getAddOnId() {
+        return addOnId;
+    }
+
+    public void setAddOnId(Integer addOnId) {
+        this.addOnId = addOnId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public ExtraService getExtraService() {
+        return extraService;
+    }
+
+    public void setExtraService(ExtraService extraService) {
+        this.extraService = extraService;
+    }
+    
+    @Column(name = "price_at_booking")
+    private Double priceAtBooking;
+
+    public Double getPriceAtBooking() {
+        return priceAtBooking;
+    }
+
+    public void setPriceAtBooking(Double priceAtBooking) {
+        this.priceAtBooking = priceAtBooking;
+    }
 }
