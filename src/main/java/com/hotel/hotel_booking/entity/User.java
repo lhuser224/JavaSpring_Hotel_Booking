@@ -1,5 +1,6 @@
 package com.hotel.hotel_booking.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.*;
@@ -62,5 +63,8 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
+    //Roles 
+    private Set<Role> roles = new HashSet<>();
+    public Set<Role> getRoles() { return roles;}
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
 }
