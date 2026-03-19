@@ -17,7 +17,16 @@
                         <div th:if="${param.error}" class="alert alert-danger">
                             Sai tên đăng nhập hoặc mật khẩu!
                         </div>
-                        
+						<div th:if="${param.error}">
+						    <p th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('not active')}" 
+						       style="color: red;">
+						        Account is not active!
+						    </p>
+						    <p th:unless="${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('not active')}" 
+						       style="color: red;">
+						        Invalid username or password.
+						    </p>
+						</div>                        
                         <form th:action="@{/login}" method="post">
                             <div class="mb-3">
                                 <label class="form-label">Tên đăng nhập</label>
