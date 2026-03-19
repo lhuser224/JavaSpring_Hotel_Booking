@@ -18,14 +18,13 @@ public class UserController {
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("user", new User());
-        return "user/register"; // Trả về templates/user/register.html
+        return "register"; // Trả về templates/user/register.html
     }
 
     // Xử lý lưu thông tin khách hàng vào DB 
     @PostMapping("/register")
     public String register(@ModelAttribute("user") User user) {
-        userService.saveUser(user);
-        // Sau khi lưu xong khách hàng, chuyển hướng sang trang chọn phòng
+        userService.registerUser(user);
         return "redirect:/bookings/create";
     }
 }

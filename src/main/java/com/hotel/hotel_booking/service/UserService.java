@@ -9,8 +9,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -28,8 +26,8 @@ public class UserService {
 
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        Role defaultRole = roleRepo.findByName("ROLE_USER");
+        user.setEnabled(true);
+        Role defaultRole = roleRepo.findByRoleName("ROLE_USER");
         if (defaultRole != null) {
             user.getRoles().add(defaultRole);
         }

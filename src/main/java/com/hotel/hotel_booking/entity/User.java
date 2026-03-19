@@ -28,8 +28,9 @@ public class User {
     private String username;
 
     private String password;
-
-    private Boolean enabled;
+    
+    @Column(nullable = false)
+    private Boolean enabled = true;
 
     public User(){}
 
