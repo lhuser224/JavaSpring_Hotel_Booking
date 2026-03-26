@@ -3,11 +3,12 @@ package com.hotel.hotel_booking.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Reservation_AddOns")
+@Table(name = "reservation_addons")
 public class ReservationAddOn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "addon_id")
     private Integer addOnId;
 
     private Integer quantity;

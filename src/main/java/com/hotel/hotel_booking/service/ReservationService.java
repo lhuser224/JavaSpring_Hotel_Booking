@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -81,12 +82,30 @@ public class ReservationService {
         return reservationRepo.findByUser_UserIdAndStatusNotOrderByReservationIdDesc(user.getUserId(), "Cart");
     }
 
-    /**
-     * Strict Validation: Không cho ngày quá khứ, ngày trả phải sau ngày nhận
-     */
     private void validateDates(LocalDate in, LocalDate out) {
         if (in == null || out == null) throw new RuntimeException("Thiếu ngày tháng!");
-        if (in.isBefore(LocalDate.now())) throw new RuntimeException("Ngày nhận phòng không hợp lệ!");
-        if (!out.isAfter(in)) throw new RuntimeException("Ngày trả phải sau ngày nhận!");
+        
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        LocalTime limitTime = LocalTime.of(12, 0); // Quy định 12:00 trưa
+
+        // 1. Chặn nếu ngày nhận phòng là hôm nay nhưng đã quá 12:00 trưa
+        if (in.equals(today) && now.isAfter(limitTime)) {
+            throw new RuntimeException("Đã quá 12:00 trưa, vui lòng đặt phòng từ ngày mai!");
+        }
+
+        // 2. Chặn nếu ngày nhận trong quá khứ
+        if (in.isBefore(today)) {
+            throw new RuntimeException("Ngày nhận phòng không hợp lệ!");
+        }
+
+        // 3. Chặn ngày trả phòng
+        if (!out.isAfter(in)) {
+            throw new RuntimeException("Ngày trả phòng phải sau ngày nhận ít nhất 1 ngày!");
+        }
+    }
+    public Reservation getById(Integer id) {
+        return reservationRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + id));
     }
 }

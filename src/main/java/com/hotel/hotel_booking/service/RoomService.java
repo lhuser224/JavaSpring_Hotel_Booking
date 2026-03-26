@@ -27,4 +27,9 @@ public class RoomService {
                 .filter(Room::getIsActive)
                 .toList();
     }
+    
+    public RoomType getRoomTypeById(Integer id) {
+        return roomTypeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng với ID: " + id));
+    }
 }

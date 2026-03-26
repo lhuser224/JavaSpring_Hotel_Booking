@@ -1,50 +1,200 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Đặt phòng mới</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <th:block th:replace="~{fragments :: html_head}"></th:block>
+    <title>Thông tin đặt phòng - Luxury Hotel</title>
+    <style>
+        .booking-card { border: none; border-radius: 15px; overflow: hidden; }
+        .form-label { font-weight: 600; color: #495057; }
+        .package-info { font-size: 0.85rem; transition: all 0.3s; display: none; }
+        .price-highlight { color: #0d6efd; font-weight: 700; }
+    </style>
 </head>
 <body class="bg-light">
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="container mt-4">
-        <div class="card shadow border-0 p-4">
-            <h3 class="mb-4 text-primary">Thông tin đặt phòng</h3>
-            <form th:action="@{/bookings/save-cart}" th:object="${reservation}" method="post">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Loại phòng</label>
-                        <select class="form-select" th:field="*{roomType.typeId}">
-                            <option th:each="t : ${roomTypes}" th:value="${t.typeId}" th:text="${t.typeName}"></option>
-                        </select>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="card booking-card shadow-lg">
+                    <div class="card-header bg-dark text-white py-3 text-center">
+                        <h4 class="mb-0 text-warning"><i class="fa-solid fa-calendar-check me-2"></i>CHI TIẾT ĐẶT PHÒNG</h4>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Gói dịch vụ</label>
-                        <select class="form-select" th:field="*{servicePackage.packageId}">
-                            <option th:each="p : ${packages}" th:value="${p.packageId}" th:text="${p.packageName}"></option>
-                        </select>
+                    
+                    <div class="card-body p-4">
+                        <form th:action="@{/bookings/save-cart}" th:object="${reservation}" method="post">
+                            <input type="hidden" th:field="*{roomType.roomTypeId}">
+                            
+                            <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4 border-0">
+                                <div>
+                                    <h5 class="mb-0 fw-bold text-dark" th:text="${selectedRoomType.typeName}"></h5>
+                                    <small class="text-muted" th:text="${selectedRoomType.bedDescription}"></small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-muted small">Giá phòng/đêm:</span>
+                                    <h5 class="mb-0 price-highlight">$<span th:text="${selectedRoomType.basePrice}"></span></h5>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Ngày nhận phòng</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa-solid fa-calendar-plus text-primary"></i></span>
+                                        <input type="date" th:field="*{checkInDate}" class="form-control form-control-lg" id="checkInDate" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Ngày trả phòng</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa-solid fa-calendar-minus text-danger"></i></span>
+                                        <input type="date" th:field="*{checkOutDate}" class="form-control form-control-lg" id="checkOutDate" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Số lượng phòng</label>
+                                    <input type="number" th:field="*{roomQuantity}" id="roomQty" class="form-control form-control-lg" min="1" max="10" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Số lượng khách</label>
+                                    <input type="number" th:field="*{guestCount}" class="form-control form-control-lg" min="1" max="20" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Gói dịch vụ</label>
+                                    <select id="packageSelect" th:field="*{servicePackage.packageId}" class="form-select form-select-lg">
+                                        <option th:each="p : ${packages}" 
+                                                th:value="${p.packageId}" 
+                                                th:data-price="${p.packagePrice}"
+                                                th:data-breakfast="${p.includesBreakfast}"
+                                                th:data-late="${p.allowsLateCheckout}"
+                                                th:text="${p.packageName} + ' (+$' + ${p.packagePrice} + ')'">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="packageDetailBox" class="p-3 border rounded mb-4 bg-white shadow-sm">
+                                <div class="fw-bold mb-2 small text-uppercase text-muted">Tiện ích gói dịch vụ:</div>
+                                <div id="feat-breakfast" class="package-info mb-1"><i class="fa-solid fa-mug-saucer me-2 text-success"></i>Bao gồm bữa sáng hằng ngày</div>
+                                <div id="feat-late" class="package-info mb-1"><i class="fa-solid fa-clock me-2 text-success"></i>Hỗ trợ trả phòng muộn</div>
+                                <div id="feat-standard" class="package-info text-muted"><i class="fa-solid fa-circle-info me-2"></i>Dịch vụ phòng tiêu chuẩn</div>
+                            </div>
+
+                            <div class="card bg-dark text-white border-0 mb-4">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-light">Số đêm lưu trú:</span>
+                                        <span id="nightCount" class="fw-bold">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold fs-5">Tạm tính (Chưa gồm Add-on):</span>
+                                        <span class="fs-3 fw-bold text-warning">$<span id="subtotal">0.00</span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold shadow">
+                                    TIẾP TỤC CHỌN DỊCH VỤ <i class="fa-solid fa-chevron-right ms-2"></i>
+                                </button>
+                                <a th:href="@{/}" class="btn btn-link text-muted text-decoration-none">
+                                    <i class="fa-solid fa-arrow-left me-1"></i> Quay lại trang chủ
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Ngày nhận phòng</label>
-                        <input type="date" th:field="*{checkInDate}" class="form-control" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Ngày trả phòng</label>
-                        <input type="date" th:field="*{checkOutDate}" class="form-control" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Số lượng phòng</label>
-                        <input type="number" th:field="*{roomQuantity}" class="form-control" min="1" value="1">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-dark w-100 py-2 mt-3">Tiếp tục tới giỏ hàng</button>
-            </form>
+            </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:inline="javascript">
+	        document.addEventListener('DOMContentLoaded', function() {
+	            const checkInInput = document.getElementById('checkInDate');
+	            const checkOutInput = document.getElementById('checkOutDate');
+	            const packageSelect = document.getElementById('packageSelect');
+	            const roomQtyInput = document.getElementById('roomQty');
+	            const subtotalDisplay = document.getElementById('subtotal');
+	            const nightDisplay = document.getElementById('nightCount');
+	            
+	            // 1. Lấy giá phòng từ Model
+	            const basePrice = [[${selectedRoomType.basePrice}]];
+	            
+	            // 2. Logic xử lý mốc giờ 12:00 trưa
+	            const now = new Date();
+	            const currentHour = now.getHours();
+	            let minCheckIn = new Date();
+	            
+	            // Nếu đã quá 12h trưa, ngày nhận phòng sớm nhất phải là ngày mai
+	            if (currentHour >= 12) {
+	                minCheckIn.setDate(minCheckIn.getDate() + 1);
+	            }
+	            
+	            const minCheckInStr = minCheckIn.toISOString().split('T')[0];
+	            
+	            // Thiết lập thuộc tính min và giá trị mặc định cho Check-in
+	            checkInInput.setAttribute('min', minCheckInStr);
+	            if (!checkInInput.value || checkInInput.value < minCheckInStr) {
+	                checkInInput.value = minCheckInStr;
+	            }
+
+	            // Thiết lập ngày trả phòng mặc định (sau ngày nhận 1 ngày)
+	            function updateMinCheckOut() {
+	                let nextDay = new Date(checkInInput.value);
+	                nextDay.setDate(nextDay.getDate() + 1);
+	                const minCheckOutStr = nextDay.toISOString().split('T')[0];
+	                
+	                checkOutInput.setAttribute('min', minCheckOutStr);
+	                if (checkOutInput.value <= checkInInput.value) {
+	                    checkOutInput.value = minCheckOutStr;
+	                }
+	            }
+
+	            function updateSummary() {
+	                // Lấy thông tin gói dịch vụ
+	                const opt = packageSelect.options[packageSelect.selectedIndex];
+	                const pkgPrice = parseFloat(opt.getAttribute('data-price')) || 0;
+	                const isLate = opt.getAttribute('data-late') === 'true';
+	                const isBreakfast = opt.getAttribute('data-breakfast') === 'true';
+	                
+	                // Cập nhật UI tiện ích gói
+	                document.getElementById('feat-breakfast').style.display = isBreakfast ? 'block' : 'none';
+	                document.getElementById('feat-late').style.display = isLate ? 'block' : 'none';
+	                document.getElementById('feat-standard').style.display = (!isBreakfast && !isLate) ? 'block' : 'none';
+
+	                // Tính số đêm lưu trú
+	                const start = new Date(checkInInput.value);
+	                const end = new Date(checkOutInput.value);
+	                const diffTime = end - start;
+	                let nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+	                
+	                if (nights < 1) nights = 1;
+	                if (nightDisplay) nightDisplay.innerText = nights;
+
+	                // Tính tổng tiền: (Giá phòng + Giá gói) * Số lượng phòng * Số đêm
+	                const qty = parseInt(roomQtyInput.value) || 1;
+	                const total = (basePrice + pkgPrice) * qty * nights;
+	                
+	                subtotalDisplay.innerText = total.toFixed(2);
+	            }
+
+	            // Lắng nghe sự kiện thay đổi
+	            checkInInput.addEventListener('change', function() {
+	                updateMinCheckOut();
+	                updateSummary();
+	            });
+
+	            checkOutInput.addEventListener('change', updateSummary);
+	            packageSelect.addEventListener('change', updateSummary);
+	            roomQtyInput.addEventListener('input', updateSummary);
+	            
+	            // Khởi tạo chạy lần đầu
+	            updateMinCheckOut();
+	            updateSummary();
+	        });
+    </script>
 </body>
 </html>

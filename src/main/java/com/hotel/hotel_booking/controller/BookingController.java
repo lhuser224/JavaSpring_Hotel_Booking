@@ -2,6 +2,8 @@ package com.hotel.hotel_booking.controller;
 
 import com.hotel.hotel_booking.entity.Reservation;
 import com.hotel.hotel_booking.entity.User;
+import com.hotel.hotel_booking.entity.RoomType;
+import com.hotel.hotel_booking.entity.ServicePackage;
 import com.hotel.hotel_booking.service.ReservationService;
 import com.hotel.hotel_booking.service.RoomService;
 import com.hotel.hotel_booking.service.UserService;
@@ -25,36 +27,65 @@ public class BookingController {
     @Autowired private UserService userService;
 
     // 1. Hiển thị form chọn phòng ban đầu
-    @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        model.addAttribute("roomTypes", roomService.getAllRoomTypes()); 
-        model.addAttribute("packages", hotelExtraService.getAllPackages()); 
-        model.addAttribute("extraServices", hotelExtraService.getAllExtraServices()); 
-        model.addAttribute("reservation", new Reservation());
+    @GetMapping("/select")
+    public String selectRoomType(@RequestParam("typeId") Integer typeId, Model model) {
+        // 1. Lấy thông tin loại phòng
+        RoomType selectedType = roomService.getRoomTypeById(typeId);
+        
+        // 2. Khởi tạo đối tượng Reservation (Form Object)
+        Reservation reservation = new Reservation();
+        reservation.setRoomType(selectedType);
+        reservation.setRoomQuantity(1);
+        reservation.setGuestCount(1); 
+
+        // 3. Lấy danh sách gói dịch vụ từ Service
+        List<ServicePackage> packages = hotelExtraService.getAllPackages();
+        
+        // Tìm gói Standard làm mặc định nếu có
+        ServicePackage defaultPkg = packages.stream()
+                .filter(p -> "Standard".equalsIgnoreCase(p.getPackageName()))
+                .findFirst()
+                .orElse(!packages.isEmpty() ? packages.get(0) : null);
+        reservation.setServicePackage(defaultPkg);
+
+        // 4. Đưa dữ liệu sang View
+        model.addAttribute("reservation", reservation);
+        model.addAttribute("packages", packages);
+        model.addAttribute("selectedRoomType", selectedType);
+
         return "booking/create"; 
     }
 
     // 2. Lưu thông tin cơ bản vào giỏ hàng (Trạng thái "Cart")
     @PostMapping("/save-cart")
     public String saveCart(@ModelAttribute("reservation") Reservation reservation, Principal principal) {
-        // 1. Lấy thông tin User thông qua Service
-        String username = principal.getName();
-        User currentUser = userService.findByUsername(username); 
-        
-        // 2. Gán User vào đơn hàng
-        reservation.setUser(currentUser);
-        
-        // 3. Tạo giỏ hàng
-        Reservation saved = reservationService.createCart(reservation);
+        if (principal == null) return "redirect:/login";
+        if (reservation.getRoomType() == null || reservation.getRoomType().getRoomTypeId() == null) {
+            return "redirect:/";
+        }
+        User currentUser = userService.findByUsername(principal.getName());
+        reservation.setUser(currentUser);        
+        Reservation saved = reservationService.createCart(reservation);        
         return "redirect:/bookings/details/" + saved.getReservationId();
     }
 
     // 3. Trang chi tiết đơn hàng (Xem lại & Thêm dịch vụ Add-on)
     @GetMapping("/details/{id}")
     public String showDetails(@PathVariable Integer id, Model model) {
-        // Cần bổ sung hàm findById trong ReservationService nếu chưa có
-        // model.addAttribute("res", reservationService.getById(id));
+        Reservation res = reservationService.getById(id);
+        
+        // Tính số đêm (ChronoUnit.DAYS)
+        long nights = java.time.temporal.ChronoUnit.DAYS.between(
+            res.getCheckInDate(), 
+            res.getCheckOutDate()
+        );
+        if (nights <= 0) nights = 1; 
+
+        model.addAttribute("reservation", res);
+        model.addAttribute("id", id);
+        model.addAttribute("nights", nights); 
         model.addAttribute("extraServices", hotelExtraService.getAllExtraServices());
+        
         return "booking/details";
     }
 
@@ -72,6 +103,7 @@ public class BookingController {
         List<Reservation> history = reservationService.getHistoryByUsername(username);
         
         model.addAttribute("historyList", history);
-        return "booking/history"; // File này bạn tạo trong templates/booking/
+        return "booking/history"; 
     }
+    
 }
