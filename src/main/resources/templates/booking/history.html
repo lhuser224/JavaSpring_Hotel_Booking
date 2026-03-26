@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lịch sử đặt phòng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div th:replace="~{fragments :: navbar}"></div>
+
+    <div class="container mt-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0"><i class="bi bi-clock-history"></i> Lịch sử đặt phòng</h4>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(historyList)}" class="text-center py-5">
+                    <p class="text-muted">Bạn chưa có đơn đặt phòng nào.</p>
+                    <a href="/bookings/create" class="btn btn-primary">Đặt phòng ngay</a>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(historyList)}" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Voucher</th>
+                                <th>Loại phòng</th>
+                                <th>Thời gian</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="res : ${historyList}">
+                                <td>
+                                    <span class="badge bg-primary px-3 py-2" th:text="${res.confirmationVoucher}"></span>
+                                </td>
+                                <td>
+                                    <strong th:text="${res.roomType.typeName}"></strong><br>
+                                    <small th:text="${res.roomQuantity} + ' phòng'"></small>
+                                </td>
+                                <td>
+                                    <small>Từ: <span th:text="${res.checkInDate}"></span></small><br>
+                                    <small>Đến: <span th:text="${res.checkOutDate}"></span></small>
+                                </td>
+                                <td class="fw-bold text-danger" th:text="'$' + ${res.totalAmount}"></td>
+                                <td>
+                                    <span class="badge rounded-pill" 
+                                          th:classappend="${res.status == 'Confirmed' ? 'bg-success' : 'bg-secondary'}"
+                                          th:text="${res.status}"></span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/bookings/voucher/{id}(id=${res.reservationId})}" class="btn btn-sm btn-outline-dark">Xem chi tiết</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

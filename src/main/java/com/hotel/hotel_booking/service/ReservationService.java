@@ -6,61 +6,87 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional
+@Transactional// đảm bảo dùng transaction trong sql
 public class ReservationService {
 
     @Autowired private ReservationRepository reservationRepo;
     @Autowired private ExtraServiceRepository extraServiceRepo;
     @Autowired private ReservationAddOnRepository addOnRepo;
+    @Autowired private UserRepository userRepo;
 
-    // Bước A: Khởi tạo giỏ hàng 
-    public Reservation createCart(Reservation reservation) {
-        reservation.setStatus("Cart"); 
-        return reservationRepo.save(reservation);
+    /**
+     * Bước A: Khởi tạo giỏ hàng + Kiểm tra ràng buộc ngày tháng
+     */
+    public Reservation createCart(Reservation res) {
+        validateDates(res.getCheckInDate(), res.getCheckOutDate());
+        res.setStatus("Cart");
+        return reservationRepo.save(res);
     }
 
-    // Bước B: Thêm dịch vụ đi kèm 
+    /**
+     * Bước B: Thêm dịch vụ đi kèm (Chỉ cho phép khi đơn là 'Cart')
+     */
     public void addExtraService(int resId, int serviceId, int quantity) {
-        Reservation res = reservationRepo.findById(resId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng: " + resId));
-        
-        ExtraService service = extraServiceRepo.findById(serviceId)
-                .orElseThrow(() -> new RuntimeException("Dịch vụ không tồn tại"));
+        Reservation res = reservationRepo.findById(resId).orElseThrow();
+        if (!"Cart".equals(res.getStatus())) throw new RuntimeException("Đơn hàng đã chốt!");
 
+        ExtraService service = extraServiceRepo.findById(serviceId).orElseThrow();
+        
         ReservationAddOn addOn = new ReservationAddOn();
         addOn.setReservation(res);
-        addOn.setExtraService(service); // Khớp với gợi ý của IDE
+        addOn.setExtraService(service);
         addOn.setQuantity(quantity);
-        addOn.setPriceAtBooking(service.getPrice()); // Chốt giá tại thời điểm đặt
+        addOn.setPriceAtBooking(service.getPrice()); // Chốt giá hiện tại
 
         addOnRepo.save(addOn);
     }
 
-    // Bước C: Tính tổng tiền và xác nhận
+    /**
+     * Bước C: Tính tiền theo Số đêm & Xác nhận
+     * Công thức: ((Phòng + Gói) * Số lượng * Số đêm) + Dịch vụ thêm
+     */
     public Reservation confirmBooking(int resId) {
-        Reservation res = reservationRepo.findById(resId)
-                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+        Reservation res = reservationRepo.findById(resId).orElseThrow();
+        validateDates(res.getCheckInDate(), res.getCheckOutDate());
 
-        // Lấy giá từ các thực thể liên quan 
-        double roomBasePrice = res.getRoomType().getBasePrice().doubleValue();
-        double packagePrice = res.getServicePackage().getPackagePrice().doubleValue();
-        
-        // Tính tổng tiền add-ons từ danh sách JPA Mapping [
-        double addOnTotal = 0;
-        if (res.getReservationAddOns() != null) {
-            addOnTotal = res.getReservationAddOns().stream()
-                    .mapToDouble(a -> a.getPriceAtBooking().doubleValue() * a.getQuantity())
-                    .sum();
-        }
+        // Core Logic: Tính số đêm lưu trú
+        long nights = ChronoUnit.DAYS.between(res.getCheckInDate(), res.getCheckOutDate());
+        if (nights < 1) nights = 1;
 
-        double finalTotal = ((roomBasePrice + packagePrice) * res.getRoomQuantity()) + addOnTotal;
+        double roomRate = res.getRoomType().getBasePrice().doubleValue();
+        double packageRate = res.getServicePackage().getPackagePrice().doubleValue();
         
-        res.setTotalAmount(finalTotal);
+        double addOnTotal = res.getReservationAddOns().stream()
+                .mapToDouble(a -> a.getPriceAtBooking().doubleValue() * a.getQuantity()).sum();
+
+        // Tổng tiền bao gồm thời gian ở
+        double total = ((roomRate + packageRate) * res.getRoomQuantity() * nights) + addOnTotal;
+
+        res.setTotalAmount(total);
         res.setStatus("Confirmed");
-        res.setConfirmationVoucher("VOU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase()); 
+        res.setConfirmationVoucher("VOU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         return reservationRepo.save(res);
+    }
+    
+    public List<Reservation> getHistoryByUsername(String username) {
+        User user = userRepo.findByUsername(username);
+        if (user == null) return List.of();        
+        // Lấy tất cả trừ trạng thái "Cart"
+        return reservationRepo.findByUser_UserIdAndStatusNotOrderByReservationIdDesc(user.getUserId(), "Cart");
+    }
+
+    /**
+     * Strict Validation: Không cho ngày quá khứ, ngày trả phải sau ngày nhận
+     */
+    private void validateDates(LocalDate in, LocalDate out) {
+        if (in == null || out == null) throw new RuntimeException("Thiếu ngày tháng!");
+        if (in.isBefore(LocalDate.now())) throw new RuntimeException("Ngày nhận phòng không hợp lệ!");
+        if (!out.isAfter(in)) throw new RuntimeException("Ngày trả phải sau ngày nhận!");
     }
 }

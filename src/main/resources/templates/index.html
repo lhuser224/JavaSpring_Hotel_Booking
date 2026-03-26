@@ -5,32 +5,33 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">Luxury Hotel</a>
-            <div class="d-flex">
-                <span th:if="${#authorization.expression('isAuthenticated()')}" class="text-white me-3">
-                    Chào, <span th:text="${#authentication.name}">User</span>
-                </span>
-                <a th:unless="${#authorization.expression('isAuthenticated()')}" href="/login" class="btn btn-outline-light">Login</a>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container">
-        <h2 class="mb-4">Chọn loại phòng </h2>
+    <div th:replace="~{fragments :: navbar}"></div>
+
+    <div class="container mt-4">
+        <h2 class="mb-4 text-uppercase fw-bold">Chọn loại phòng</h2>
+        
         <div class="row">
-            <div th:each="type : ${roomTypes}" class="col-md-6 mb-3">
-                <div class="card shadow-sm">
+            <div th:each="type : ${roomTypes}" class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0">
                     <div class="card-body">
-                        <h5 class="card-title" th:text="${type.typeName}">Single/Family</h5>
-                        <p class="card-text" th:text="${type.bedDescription}">1-3 Beds</p>
-                        <p class="text-primary fw-bold">$<span th:text="${type.basePrice}">0.00</span> / night</p>
-                        <a th:href="@{/bookings/select(typeId=${type.roomTypeId})}" class="btn btn-primary">Đặt phòng ngay</a>
+                        <h5 class="card-title text-primary" th:text="${type.typeName}">Single/Family</h5>
+                        <p class="card-text text-muted" th:text="${type.bedDescription}">Mô tả giường</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="mb-0 text-danger fw-bold fs-5">
+                                $<span th:text="${type.basePrice}">0.00</span> / đêm
+                            </p>
+                            <a th:href="@{/bookings/select(typeId=${type.roomTypeId})}" class="btn btn-dark px-4">
+                                Chọn phòng
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

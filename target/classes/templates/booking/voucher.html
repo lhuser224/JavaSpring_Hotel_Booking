@@ -1,0 +1,17 @@
+<div class="container mt-5">
+    <div class="card border-success shadow">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Đặt phòng thành công!</h4>
+        </div>
+        <div class="card-body text-center">
+            <p>Cảm ơn bạn đã lựa chọn Luxury Hotel. Đây là mã xác nhận của bạn:</p>
+            <h1 class="display-4 fw-bold text-primary" th:text="${reservation.confirmationVoucher}">VOU-XXXX</h1>
+            <hr>
+            <div class="text-start">
+                <p><strong>Khách hàng:</strong> <span th:text="${#authentication.name}"></span></p>
+                <p><strong>Tổng tiền:</strong> $<span th:text="${reservation.totalAmount}"></span></p>
+            </div>
+            <a href="/" class="btn btn-outline-dark mt-3">Quay lại trang chủ</a>
+        </div>
+    </div>
+</div>

@@ -24,6 +24,11 @@ public class UserService {
     @Autowired 
     private BCryptPasswordEncoder passwordEncoder;
 
+    // call in reservation controller
+    public User findByUsername(String username) {
+        return userRepo.findByUsername(username);
+    }
+
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
@@ -44,5 +49,19 @@ public class UserService {
 
     public User updateUserInfo(User user) {
         return userRepo.save(user); 
+    }
+    
+    public void changePassword(String username, String oldPass, String newPass) {
+        User user = userRepo.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("Người dùng không tồn tại");
+        }
+
+        if (!passwordEncoder.matches(oldPass, user.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPass));
+        userRepo.save(user);
     }
 }
