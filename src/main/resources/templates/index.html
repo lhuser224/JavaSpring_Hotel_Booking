@@ -1,35 +1,176 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Hotel Room Reservation</title>
+    <meta charset="UTF-8">
+    <title>Luxury Hotel | Room Reservation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+        }
+        
+        /* Hero Banner Section */
+        .hero-section {
+            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), 
+                        url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Room Card Styling */
+        .room-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        }
+
+        .room-img-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-img {
+            height: 240px;
+            width: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .room-card:hover .room-img {
+            transform: scale(1.05);
+        }
+
+        /* Badges & Icons */
+        .room-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .amenity-item {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .amenity-item i {
+            width: 20px;
+            color: #3b82f6;
+        }
+
+        /* Price & Button */
+        .price-text {
+            color: #e11d48;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+        
+        .btn-book {
+            background-color: #0f172a;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-book:hover {
+            background-color: #334155;
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="container mt-4">
-        <h2 class="mb-4 text-uppercase fw-bold">Chọn loại phòng</h2>
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Tìm Không Gian Nghỉ Dưỡng Hoàn Hảo</h1>
+            <p class="lead mb-0">Trải nghiệm dịch vụ đẳng cấp và tiện nghi tuyệt đối tại Luxury Hotel</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Các Loại Phòng Khả Dụng</h2>
+                <p class="text-muted mb-0">Chọn hạng phòng phù hợp với nhu cầu của bạn (Single hoặc Family)</p>
+            </div>
+        </div>
         
-        <div class="row">
-            <div th:each="type : ${roomTypes}" class="col-md-6 mb-4">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary" th:text="${type.typeName}">Single/Family</h5>
-                        <p class="card-text text-muted" th:text="${type.bedDescription}">Mô tả giường</p>
+        <div class="row g-4">
+            <div th:each="type : ${roomTypes}" class="col-md-6">
+                <div class="card shadow-sm h-100 room-card">
+                    
+                    <div class="room-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80" 
+                             class="room-img" alt="Room Image">
+                        <div class="room-badge">
+                            <i class="fa-solid fa-star text-warning"></i> Đề xuất
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="card-title fw-bold mb-0 text-dark" th:text="${type.typeName}">Single Room</h4>
+                        </div>
                         
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="mb-0 text-danger fw-bold fs-5">
-                                $<span th:text="${type.basePrice}">0.00</span> / đêm
-                            </p>
-                            <a th:href="@{/bookings/select(typeId=${type.roomTypeId})}" class="btn btn-dark px-4">
-                                Chọn phòng
+                        <div class="row mb-4">
+                            <div class="col-6 amenity-item">
+                                <i class="fa-solid fa-bed"></i> <span th:text="${type.bedDescription}">1 Bed</span>
+                            </div>
+                            <div class="col-6 amenity-item">
+                                <i class="fa-solid fa-user-group"></i> 
+                                <span th:text="${type.typeName == 'Family' ? '2-4 Guests' : '1-2 Guests'}">Guests</span>
+                            </div>
+                            <div class="col-6 amenity-item">
+                                <i class="fa-solid fa-wifi"></i> Free Wifi
+                            </div>
+                            <div class="col-6 amenity-item">
+                                <i class="fa-solid fa-mug-hot"></i> Có ăn sáng (Deluxe)
+                            </div>
+                        </div>
+                        
+                        <hr class="text-muted opacity-25">
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                <p class="text-muted small mb-0">Bắt đầu từ</p>
+                                <div class="price-text">
+                                    $<span th:text="${type.basePrice}">100.00</span> 
+                                    <span class="fs-6 text-muted fw-normal">/ đêm</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/bookings/select(typeId=${type.roomTypeId})}" class="btn btn-book shadow-sm">
+                                Chọn phòng <i class="fa-solid fa-arrow-right ms-2"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

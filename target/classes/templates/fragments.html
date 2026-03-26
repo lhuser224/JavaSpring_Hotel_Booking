@@ -1,28 +1,49 @@
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm" style="padding: 15px 0;">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/">LUXURY HOTEL</a>
+        <a class="navbar-brand fw-bold fs-4" href="/" style="letter-spacing: 1px;">LUXURY HOTEL</a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
+                <li class="nav-item">
+                    <a class="nav-link text-white fw-medium px-3" href="/">Trang chủ</a>
+                </li>
                 
-                <li th:if="${#authorization.expression('isAuthenticated()')}" class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle btn btn-outline-light ms-lg-2 px-3" href="#" id="userMenu" data-bs-toggle="dropdown">
-                        Chào, <span th:text="${#authentication.name}">User</span>
+                <li th:if="${#authorization.expression('isAuthenticated()')}" class="nav-item dropdown ms-lg-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 bg-secondary bg-opacity-50 rounded-pill px-3 py-2 text-white" 
+                       href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="transition: 0.3s;">
+                        <i class="fa-solid fa-circle-user fs-5 text-warning"></i>
+                        <span class="fw-semibold" th:text="${#authentication.name}">Admin</span>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item" href="/bookings/history">Lịch sử đặt phòng</a></li>
-                        <li><a class="dropdown-item" href="/users/change-password">Đổi mật khẩu</a></li>
-                        <li><hr class="dropdown-divider"></li>
+                    
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3 rounded-4 p-2" aria-labelledby="userMenu" style="min-width: 220px;">
+                        <li><h6 class="dropdown-header text-uppercase fw-bold text-muted small">Tài khoản của tôi</h6></li>
                         <li>
-                            <form th:action="@{/logout}" method="post" style="display: inline;">
-                                <button type="submit" class="dropdown-item text-danger">Đăng xuất</button>
+                            <a class="dropdown-item py-2 rounded-2 d-flex align-items-center gap-2" href="/bookings/history">
+                                <i class="fa-solid fa-clock-rotate-left text-secondary w-20px"></i> Lịch sử đặt phòng
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 rounded-2 d-flex align-items-center gap-2" href="/users/change-password">
+                                <i class="fa-solid fa-key text-secondary w-20px"></i> Đổi mật khẩu
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-2"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0 p-0">
+                                <button type="submit" class="dropdown-item py-2 rounded-2 text-danger fw-bold d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-arrow-right-from-bracket w-20px"></i> Đăng xuất
+                                </button>
                             </form>
                         </li>
                     </ul>
                 </li>
 
-                <li th:unless="${#authorization.expression('isAuthenticated()')}" class="nav-item">
-                    <a class="btn btn-primary ms-lg-2" href="/login">Đăng nhập</a>
+                <li th:unless="${#authorization.expression('isAuthenticated()')}" class="nav-item ms-lg-3">
+                    <a class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" href="/login">Đăng nhập ngay</a>
                 </li>
             </ul>
         </div>
