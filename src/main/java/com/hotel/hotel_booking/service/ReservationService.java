@@ -59,6 +59,9 @@ public class ReservationService {
         addOn.setPriceAtBooking(service.getPrice()); // Snapshot giá tại thời điểm khách đặt
 
         addOnRepo.save(addOn);
+        //Thêm trực tiếp vào list trong object res để calculateAndSetTotal thấy nó
+        res.getReservationAddOns().add(addOn);
+        
         calculateAndSetTotal(res);// Tính lại giá tiền
         reservationRepo.save(res);
     }
@@ -150,10 +153,8 @@ public class ReservationService {
         return all.stream()
             .filter(r -> keyword == null || keyword.isBlank() || 
                     (r.getConfirmationVoucher() != null && r.getConfirmationVoucher().contains(keyword)) ||
-                    r.getUser().getFullName().toLowerCase().contains(keyword.toLowerCase()))
-            .filter(r -> status == null || status.isBlank() || 
-                    (r.getConfirmationVoucher() != null && status.equals("Confirmed")) ||
-                    (r.getConfirmationVoucher() == null && status.equals("Cart")))
+                    (r.getUser() != null && r.getUser().getFullName().toLowerCase().contains(keyword.toLowerCase())))
+            .filter(r -> status == null || status.isBlank() || r.getStatus().equalsIgnoreCase(status))
             .toList();
     }
 }
