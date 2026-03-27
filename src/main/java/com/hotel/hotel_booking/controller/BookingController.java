@@ -128,10 +128,10 @@ public class BookingController {
     }
     // 4. Xác nhận đặt phòng -> Đổi trạng thái sang "Confirmed" và cấp Voucher
     @PostMapping("/{id}/confirm")
-    public String confirm(@PathVariable Integer id, Model model) {
-        Reservation res = reservationService.confirmBooking(id);
-        model.addAttribute("reservation", res);
-        return "booking/voucher"; // Trả về trang hiển thị mã Voucher
+    public String confirm(@PathVariable Integer id) {
+        reservationService.confirmBooking(id);
+        // Sau khi confirm, redirect sang trang voucher để tránh lỗi ấn F5 bị đặt lại đơn
+        return "redirect:/bookings/voucher/" + id;
     }
     
     @GetMapping("/history")
@@ -141,6 +141,29 @@ public class BookingController {
         
         model.addAttribute("historyList", history);
         return "booking/history"; 
+    }
+    
+    @GetMapping("/voucher/{id}")
+    public String showVoucher(@PathVariable Integer id, Model model) {
+        Reservation res = reservationService.getById(id);
+        
+        // 1. Tính số đêm
+        long nights = java.time.temporal.ChronoUnit.DAYS.between(
+            res.getCheckInDate(), 
+            res.getCheckOutDate()
+        );
+        if (nights <= 0) nights = 1; 
+
+        // 2. Tính toán các thành phần giá để gửi sang View
+        double roomBasePrice = res.getRoomType().getBasePrice();
+        double packagePrice = (res.getServicePackage() != null) ? res.getServicePackage().getPackagePrice() : 0;
+        double roomSubtotal = (roomBasePrice + packagePrice) * res.getRoomQuantity() * nights;
+
+        model.addAttribute("reservation", res);
+        model.addAttribute("nights", nights);
+        model.addAttribute("roomSubtotal", roomSubtotal);
+        
+        return "booking/voucher"; 
     }
     
 }

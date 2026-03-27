@@ -144,4 +144,16 @@ public class ReservationService {
         return reservationRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + id));
     }
+    
+    public List<Reservation> searchReservations(String keyword, String status) {
+        List<Reservation> all = reservationRepo.findAll();
+        return all.stream()
+            .filter(r -> keyword == null || keyword.isBlank() || 
+                    (r.getConfirmationVoucher() != null && r.getConfirmationVoucher().contains(keyword)) ||
+                    r.getUser().getFullName().toLowerCase().contains(keyword.toLowerCase()))
+            .filter(r -> status == null || status.isBlank() || 
+                    (r.getConfirmationVoucher() != null && status.equals("Confirmed")) ||
+                    (r.getConfirmationVoucher() == null && status.equals("Cart")))
+            .toList();
+    }
 }

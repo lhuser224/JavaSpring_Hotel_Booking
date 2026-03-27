@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: html_head}"></th:block>
+    <title>Admin - Quản lý khách sạn</title>
+    <style>
+        :root { --sidebar-width: 260px; --nav-height: 76px; }
+        body { background-color: #f4f7f6; }
+        .sidebar { 
+            width: var(--sidebar-width); height: 100vh; position: fixed; 
+            top: var(--nav-height); left: 0; background: #212529; padding-top: 20px; 
+        }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; margin-top: 20px; }
+        .nav-link { color: rgba(255,255,255,0.7); margin-bottom: 5px; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); border-radius: 8px; }
+        .nav-link.active { background: #0d6efd !important; }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; margin-bottom: 25px; }
+        .table-v { vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments :: navbar}"></div>
+
+    <div class="sidebar px-3">
+        <nav class="nav flex-column">
+            <a class="nav-link" href="#"><i class="fas fa-home me-2"></i> Dashboard</a>
+            <a class="nav-link active" href="#"><i class="fas fa-bed me-2"></i> Quản lý phòng</a>
+            <a class="nav-link" href="#"><i class="fas fa-ticket-alt me-2"></i> Quản lý Voucher</a>
+            <a class="nav-link text-warning" th:href="@{/}"><i class="fas fa-arrow-left me-2"></i> Xem trang chủ</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="container-fluid">
+            
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-gift me-2"></i>Danh sách Voucher hệ thống</h5>
+                    <button class="btn btn-sm btn-primary px-3 rounded-pill">Tạo Voucher mới</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 table-v">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Mã Code</th>
+                                    <th>Giảm giá</th>
+                                    <th>Ngày bắt đầu</th>
+                                    <th>Ngày hết hạn</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="v : ${vouchers}">
+                                    <td class="ps-4"><code class="fw-bold text-danger" th:text="${v.voucherCode}">SUMMER2024</code></td>
+                                    <td><span class="fw-bold" th:text="${v.discountValue + (v.isPercentage ? '%' : ' $')}">10%</span></td>
+                                    <td th:text="${v.startDate}">2026-06-01</td>
+                                    <td th:text="${v.endDate}">2026-08-31</td>
+                                    <td>
+                                        <span th:if="${v.isActive}" class="badge bg-success-subtle text-success border border-success">Đang chạy</span>
+                                        <span th:unless="${v.isActive}" class="badge bg-secondary-subtle text-secondary border border-secondary">Tạm dừng</span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-light"><i class="fas fa-edit"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-door-open me-2 text-success"></i>Trạng thái phòng</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped mb-0 table-v">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Phòng</th>
+                                    <th>Loại phòng</th>
+                                    <th>Giá gốc</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="r : ${rooms}">
+                                    <td class="ps-4 fw-bold" th:text="${r.roomNumber}">101</td>
+                                    <td th:text="${r.roomType.typeName}">Double Room</td>
+                                    <td>
+                                        <form th:action="@{/admin/rooms/update-price}" method="post" class="d-flex" style="max-width: 150px;">
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" step="0.01" class="form-control" name="price" th:value="${r.roomType.basePrice}">
+                                                <button class="btn btn-outline-primary" type="submit"><i class="fas fa-check"></i></button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <span th:class="${r.isActive} ? 'badge bg-success' : 'badge bg-danger'" 
+                                              th:text="${r.isActive} ? 'Active' : 'Hidden'"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <form th:action="@{'/admin/rooms/toggle/' + ${r.roomId}}" method="post">
+                                            <button type="submit" class="btn btn-sm" th:classappend="${r.isActive} ? 'btn-outline-danger' : 'btn-outline-success'">
+                                                <i th:class="${r.isActive} ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

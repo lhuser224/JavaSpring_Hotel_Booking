@@ -33,11 +33,16 @@ public class UserController {
      * Luồng đi: Nhận data từ Form -> Gửi sang Service để mã hóa mật khẩu & lưu DB -> Điều hướng về Login
      */
     @PostMapping("/register")
-    public String register(@ModelAttribute("user") User user) {
-        userService.registerUser(user);
-        return "redirect:/login";
+    public String register(@ModelAttribute("user") User user, RedirectAttributes redirectAttributes) {
+        try {
+            userService.registerUser(user);
+            return "redirect:/login?success";
+        } catch (Exception e) {
+            // Gửi thông báo lỗi về trang đăng ký
+            redirectAttributes.addFlashAttribute("error", "Lỗi: Số ID/Passport hoặc Tên đăng nhập đã được sử dụng!");
+            return "redirect:/users/register";
+        }
     }
-
     /**
      * Chức năng: Hiển thị trang đổi mật khẩu
      * Điều kiện: Yêu cầu người dùng phải đăng nhập mới truy cập được (Cấu hình trong Security)
@@ -65,6 +70,7 @@ public class UserController {
             
             // Nếu thành công, gửi thông báo xanh
             ra.addFlashAttribute("success", "Đổi mật khẩu thành công!");
+            return "redirect:/";
         } catch (RuntimeException e) {
             // Nếu có lỗi (sai mật khẩu cũ), gửi thông báo đỏ lấy từ thông điệp của Service
             ra.addFlashAttribute("error", e.getMessage());

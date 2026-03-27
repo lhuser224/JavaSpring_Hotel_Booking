@@ -29,7 +29,13 @@ public class UserService {
         return userRepo.findByUsername(username);
     }
 
-    public User registerUser(User user) {
+    public User registerUser(User user) throws Exception {
+    	if (userRepo.existsByUsername(user.getUsername())) {
+            throw new Exception("Tên đăng nhập đã tồn tại!");
+        }
+        if (userRepo.existsByIdPassportNumber(user.getIdPassportNumber())) {
+            throw new Exception("Số ID/Passport này đã được đăng ký!");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
         Role defaultRole = roleRepo.findByRoleName("ROLE_USER");
