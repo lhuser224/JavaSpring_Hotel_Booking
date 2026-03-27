@@ -27,4 +27,8 @@ public class HotelExtraService {
                 .filter(ExtraService::getIsActive)
                 .toList();
     }
+    public ServicePackage getPackageById(Integer id) {
+        return packageRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói dịch vụ ID: " + id));
+    }
 }

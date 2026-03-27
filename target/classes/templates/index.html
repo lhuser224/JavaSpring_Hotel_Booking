@@ -1,103 +1,83 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Luxury Hotel | Room Reservation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <th:block th:replace="~{fragments :: html_head}"></th:block>
+    <title>Luxury Hotel | Trải nghiệm nghỉ dưỡng đẳng cấp</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-        }
+        body { background-color: #f8fafc; }
         
-        /* Hero Banner Section */
+        /* Hero Section với hiệu ứng phủ mờ */
         .hero-section {
-            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), 
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), 
                         url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1920&q=80') no-repeat center center;
             background-size: cover;
+            padding: 120px 0 160px 0;
             color: white;
-            padding: 80px 0;
             text-align: center;
-            margin-bottom: 40px;
         }
 
-        /* Room Card Styling */
+        /* Filter Bar nổi lên trên Hero */
+        .filter-container {
+            margin-top: -80px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .filter-card {
+            border: none;
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Room Card Design */
         .room-card {
             border: none;
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            background: #fff;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ffffff;
+            height: 100%;
         }
         
         .room-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
         }
 
-        .room-img-wrapper {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .room-img {
-            height: 240px;
-            width: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .room-card:hover .room-img {
-            transform: scale(1.05);
-        }
-
-        /* Badges & Icons */
-        .room-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #0f172a;
-            font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .amenity-item {
-            font-size: 0.9rem;
-            color: #64748b;
-            margin-bottom: 8px;
+        .room-img-wrapper { 
+            position: relative; 
+            height: 260px;
+            overflow: hidden; 
+            border-radius: 20px 20px 0 0;
         }
         
-        .amenity-item i {
-            width: 20px;
-            color: #3b82f6;
+        .room-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transition: transform 0.6s ease; 
         }
+        
+        .room-card:hover .room-img { transform: scale(1.1); }
 
-        /* Price & Button */
-        .price-text {
-            color: #e11d48;
+        .price-tag {
+            background: #0f172a;
+            color: #fbbf24;
+            padding: 8px 16px;
+            border-radius: 12px;
             font-weight: 700;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
         }
-        
-        .btn-book {
-            background-color: #0f172a;
-            color: white;
+
+        .amenity-badge {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 6px 12px;
             border-radius: 8px;
-            padding: 10px 24px;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        
-        .btn-book:hover {
-            background-color: #334155;
-            color: white;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
     </style>
 </head>
@@ -107,72 +87,141 @@
 
     <div class="hero-section">
         <div class="container">
-            <h1 class="display-4 fw-bold mb-3">Tìm Không Gian Nghỉ Dưỡng Hoàn Hảo</h1>
-            <p class="lead mb-0">Trải nghiệm dịch vụ đẳng cấp và tiện nghi tuyệt đối tại Luxury Hotel</p>
+            <h1 class="display-3 fw-bold mb-3">Luxury Hotel</h1>
+            <p class="fs-4 fw-light opacity-75">Nơi sự sang trọng gặp gỡ sự thoải mái</p>
         </div>
     </div>
 
-    <div class="container mb-5">
+    <div class="container filter-container">
+        <div class="card filter-card p-4">
+            <form th:action="@{/}" method="get" id="searchForm" class="row g-3 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label fw-bold text-secondary small">Ngày nhận phòng</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-calendar text-primary"></i></span>
+                        <input type="date" name="checkIn" id="mainCheckIn" th:value="${checkIn}" class="form-control border-start-0 ps-0" required>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label fw-bold text-secondary small">Ngày trả phòng</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-calendar-check text-danger"></i></span>
+                        <input type="date" name="checkOut" id="mainCheckOut" th:value="${checkOut}" class="form-control border-start-0 ps-0" required>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label fw-bold text-secondary small">Hạng phòng</label>
+                    <select name="typeName" class="form-select bg-light border-0">
+                        <option value="">Tất cả hạng phòng</option>
+                        <option value="Single" th:selected="${typeName == 'Single'}">Single Room</option>
+                        <option value="Family" th:selected="${typeName == 'Family'}">Family Room</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label fw-bold text-secondary small">Sắp xếp theo giá</label>
+                    <select name="sortOrder" class="form-select bg-light border-0">
+                        <option value="asc" th:selected="${sortOrder == 'asc'}">Giá: Thấp đến Cao</option>
+                        <option value="desc" th:selected="${sortOrder == 'desc'}">Giá: Cao đến Thấp</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container my-5 pb-5">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
-                <h2 class="fw-bold text-dark mb-1">Các Loại Phòng Khả Dụng</h2>
-                <p class="text-muted mb-0">Chọn hạng phòng phù hợp với nhu cầu của bạn (Single hoặc Family)</p>
+                <h2 class="fw-bold text-dark mb-1">Hạng phòng khả dụng</h2>
+                <p class="text-muted mb-0">Tìm thấy <span th:text="${#lists.size(roomTypes)}" class="fw-bold text-primary">0</span> lựa chọn phù hợp</p>
             </div>
         </div>
         
         <div class="row g-4">
-            <div th:each="type : ${roomTypes}" class="col-md-6">
-                <div class="card shadow-sm h-100 room-card">
-                    
+            <div th:if="${#lists.isEmpty(roomTypes)}" class="col-12 text-center py-5">
+                <div class="bg-white rounded-4 p-5 shadow-sm">
+                    <i class="fa-solid fa-bed-pulse fa-4x text-light-emphasis mb-3"></i>
+                    <h3 class="text-secondary">Rất tiếc, không còn phòng trống!</h3>
+                    <p class="text-muted">Vui lòng chọn ngày khác hoặc thay đổi tiêu chí tìm kiếm.</p>
+                </div>
+            </div>
+
+            <div th:each="type : ${roomTypes}" class="col-lg-6">
+                <div class="card shadow-sm room-card">
                     <div class="room-img-wrapper">
-						<img th:src="${type.imageUrl != null ? type.imageUrl : 'https://images.unsplash.com/photo-1611892440504-42a792e24d32'}" 
-						     class="room-img" th:alt="${type.typeName}">
-                        <div class="room-badge">
-                            <i class="fa-solid fa-star text-warning"></i> Đề xuất
+                        <img th:src="${type.imageUrl != null ? type.imageUrl : 'https://images.unsplash.com/photo-1611892440504-42a792e24d32'}" 
+                             class="room-img" th:alt="${type.typeName}">
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                                <i class="fa-solid fa-crown me-1"></i> Phổ biến
+                            </span>
                         </div>
                     </div>
                     
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="card-title fw-bold mb-0 text-dark" th:text="${type.typeName}">Single Room</h4>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-6 amenity-item">
-                                <i class="fa-solid fa-bed"></i> <span th:text="${type.bedDescription}">1 Bed</span>
-                            </div>
-                            <div class="col-6 amenity-item">
-                                <i class="fa-solid fa-user-group"></i> 
-                                <span th:text="${type.typeName == 'Family' ? '2-4 Guests' : '1-2 Guests'}">Guests</span>
-                            </div>
-                            <div class="col-6 amenity-item">
-                                <i class="fa-solid fa-wifi"></i> Free Wifi
-                            </div>
-                            <div class="col-6 amenity-item">
-                                <i class="fa-solid fa-mug-hot"></i> Có ăn sáng (Deluxe)
-                            </div>
-                        </div>
-                        
-                        <hr class="text-muted opacity-25">
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-muted small mb-0">Bắt đầu từ</p>
-                                <div class="price-text">
-                                    $<span th:text="${type.basePrice}">100.00</span> 
-                                    <span class="fs-6 text-muted fw-normal">/ đêm</span>
+                                <h3 class="fw-bold mb-1" th:text="${type.typeName}">Single Room</h3>
+                                <div class="d-flex gap-2 flex-wrap mt-2">
+                                    <span class="amenity-badge"><i class="fa-solid fa-bed"></i> <span th:text="${type.bedDescription}">1 Bed</span></span>
+                                    <span class="amenity-badge"><i class="fa-solid fa-user-group"></i> <span th:text="${type.typeName == 'Family' ? '2-4 Khách' : '1-2 Khách'}">Guests</span></span>
+                                    <span class="amenity-badge"><i class="fa-solid fa-wifi"></i> Free Wifi</span>
                                 </div>
                             </div>
-                            <a th:href="@{/bookings/select(typeId=${type.roomTypeId})}" class="btn btn-book shadow-sm">
-                                Chọn phòng <i class="fa-solid fa-arrow-right ms-2"></i>
+                            <div class="text-end">
+                                <div class="price-tag mb-1">
+                                    $<span th:text="${type.basePrice}">100.00</span>
+                                </div>
+                                <small class="text-muted">/ đêm</small>
+                            </div>
+                        </div>
+                        
+                        <p class="text-secondary small mb-4">Tận hưởng không gian sang trọng với đầy đủ tiện nghi tiêu chuẩn 5 sao và dịch vụ chăm sóc khách hàng 24/7.</p>
+                        
+                        <div class="d-grid">
+                            <a th:href="@{/bookings/select(typeId=${type.roomTypeId}, checkIn=${checkIn}, checkOut=${checkOut})}" 
+                               class="btn btn-outline-dark btn-lg fw-bold py-3 rounded-3 transition-all">
+                                Đặt phòng ngay <i class="fa-solid fa-chevron-right ms-2"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkIn = document.getElementById('mainCheckIn');
+            const checkOut = document.getElementById('mainCheckOut');
+
+            function getLocalDate(date) {
+                const offset = date.getTimezoneOffset() * 60000;
+                return (new Date(date - offset)).toISOString().split('T')[0];
+            }
+
+            // Logic mặc định cho tìm kiếm
+            const today = new Date();
+            if (today.getHours() >= 12 && !checkIn.value) {
+                today.setDate(today.getDate() + 1);
+            }
+            
+            const minDate = getLocalDate(today);
+            checkIn.setAttribute('min', minDate);
+
+            checkIn.addEventListener('change', function() {
+                let nextDay = new Date(this.value);
+                nextDay.setDate(nextDay.getDate() + 1);
+                checkOut.setAttribute('min', getLocalDate(nextDay));
+                if (checkOut.value <= this.value) {
+                    checkOut.value = getLocalDate(nextDay);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

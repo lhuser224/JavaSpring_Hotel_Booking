@@ -7,6 +7,8 @@ import com.hotel.hotel_booking.repository.RoomTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -15,7 +17,10 @@ public class RoomService {
 
     @Autowired private RoomRepository roomRepo;
     @Autowired private RoomTypeRepository roomTypeRepo;
-
+    // gọi từ repo roomtype
+    public List<RoomType> searchAvailableRoomTypes(String typeName, Double maxPrice, LocalDate checkIn, LocalDate checkOut) {
+        return roomTypeRepo.searchAvailableRoomTypes(typeName, maxPrice, checkIn, checkOut);
+    }
     // Lấy danh sách loại phòng (Single/Family) để User chọn 
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepo.findAll();

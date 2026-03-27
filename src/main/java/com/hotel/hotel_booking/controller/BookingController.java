@@ -29,28 +29,34 @@ public class BookingController {
     // 1. Hiển thị form chọn phòng ban đầu
     @GetMapping("/select")
     public String selectRoomType(@RequestParam("typeId") Integer typeId, Model model) {
-        // 1. Lấy thông tin loại phòng
+        // 1. Kiểm tra RoomType có tồn tại không để tránh lỗi 500
         RoomType selectedType = roomService.getRoomTypeById(typeId);
+        if (selectedType == null) {
+            return "redirect:/rooms"; // Hoặc trang báo lỗi
+        }
         
-        // 2. Khởi tạo đối tượng Reservation (Form Object)
+        // 2. Khởi tạo đối tượng
         Reservation reservation = new Reservation();
         reservation.setRoomType(selectedType);
         reservation.setRoomQuantity(1);
+        
         reservation.setGuestCount(1); 
 
-        // 3. Lấy danh sách gói dịch vụ từ Service
+        // 3. Xử lý Packages
         List<ServicePackage> packages = hotelExtraService.getAllPackages();
         
-        // Tìm gói Standard làm mặc định nếu có
         ServicePackage defaultPkg = packages.stream()
                 .filter(p -> "Standard".equalsIgnoreCase(p.getPackageName()))
                 .findFirst()
-                .orElse(!packages.isEmpty() ? packages.get(0) : null);
+                .orElse(packages.isEmpty() ? null : packages.get(0));
+                
         reservation.setServicePackage(defaultPkg);
 
         // 4. Đưa dữ liệu sang View
         model.addAttribute("reservation", reservation);
         model.addAttribute("packages", packages);
+        
+        // hiển thị tiêu đề hoặc ảnh loại phòng dễ hơn
         model.addAttribute("selectedRoomType", selectedType);
 
         return "booking/create"; 
@@ -59,13 +65,35 @@ public class BookingController {
     // 2. Lưu thông tin cơ bản vào giỏ hàng (Trạng thái "Cart")
     @PostMapping("/save-cart")
     public String saveCart(@ModelAttribute("reservation") Reservation reservation, Principal principal) {
+        // 1. Kiểm tra đăng nhập
         if (principal == null) return "redirect:/login";
+
+        // 2. Kiểm tra dữ liệu đầu vào cơ bản
         if (reservation.getRoomType() == null || reservation.getRoomType().getRoomTypeId() == null) {
             return "redirect:/";
         }
+
+        // 3. Gán User hiện tại
         User currentUser = userService.findByUsername(principal.getName());
         reservation.setUser(currentUser);        
+
+        /**
+         * Nạp đầy đủ thông tin từ DB trước khi sang Service tính tiền.
+         * Vì dữ liệu từ Form gửi lên thường chỉ có ID, các trường price sẽ bị null.
+         */
+        RoomType fullRoomType = roomService.getRoomTypeById(reservation.getRoomType().getRoomTypeId());
+        
+        // Kiểm tra thêm nếu có ServicePackage
+        if (reservation.getServicePackage() != null && reservation.getServicePackage().getPackageId() != null) {
+            ServicePackage fullPackage = hotelExtraService.getPackageById(reservation.getServicePackage().getPackageId());
+            reservation.setServicePackage(fullPackage);
+        }
+        
+        reservation.setRoomType(fullRoomType);
+
+        // 4. Lưu giỏ hàng (Lúc này createCart gọi calculateAndSetTotal sẽ có giá tiền để tính)
         Reservation saved = reservationService.createCart(reservation);        
+        
         return "redirect:/bookings/details/" + saved.getReservationId();
     }
 
@@ -88,7 +116,16 @@ public class BookingController {
         
         return "booking/details";
     }
-
+    //Thêm dịch vụ Add-on
+    @PostMapping("/add-service")
+    public String addService(@RequestParam("resId") Integer resId, 
+                             @RequestParam("serviceId") Integer serviceId, 
+                             @RequestParam("quantity") Integer quantity) {
+        
+        reservationService.addExtraService(resId, serviceId, quantity);
+        
+        return "redirect:/bookings/details/" + resId;
+    }
     // 4. Xác nhận đặt phòng -> Đổi trạng thái sang "Confirmed" và cấp Voucher
     @PostMapping("/{id}/confirm")
     public String confirm(@PathVariable Integer id, Model model) {
