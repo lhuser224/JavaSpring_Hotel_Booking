@@ -20,20 +20,40 @@ public class AdminRoomController {
         model.addAttribute("roomTypes", roomService.getAllRoomTypes());
         return "admin/room-type-list";
     }
-
-    // Lưu cập nhật loại phòng (Update)
+    //Update/Create loại phòng
     @PostMapping("/types/save")
-    public String saveType(@ModelAttribute RoomType roomType, RedirectAttributes ra) {
-        roomService.saveRoomType(roomType);
-        ra.addFlashAttribute("success", "Cập nhật loại phòng thành công!");
-        return "redirect:/admin/rooms/types";
+    public String saveRoomType(@ModelAttribute RoomType roomType, RedirectAttributes ra) {
+        try {
+            // Hibernate sẽ tự động INSERT nếu ID null, hoặc UPDATE nếu ID đã tồn tại
+            roomService.saveRoomType(roomType); 
+            
+            String msg = (roomType.getRoomTypeId() == null) ? "Thêm mới" : "Cập nhật";
+            ra.addFlashAttribute("success", msg + " loại phòng thành công!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi lưu dữ liệu: " + e.getMessage());
+        }
+        return "redirect:/admin/rooms/manage";
     }
-
-    // Quản lý từng phòng cụ thể (CRUD + Soft Delete)
     @GetMapping("/manage")
     public String listRooms(Model model) {
+        // Gửi cả 2 danh sách sang để hiển thị 2 bảng
         model.addAttribute("rooms", roomService.getAllRooms());
+        model.addAttribute("roomTypes", roomService.getAllRoomTypes()); 
         return "admin/room-manage";
+    }
+
+    // cập nhật giá của RoomType
+    @PostMapping("/types/update-price")
+    public String updateTypePrice(@RequestParam("typeId") Integer typeId, 
+                                 @RequestParam("newPrice") Double newPrice,
+                                 RedirectAttributes ra) {
+        RoomType type = roomService.getRoomTypeById(typeId);
+        if (type != null) {
+            type.setBasePrice(newPrice);
+            roomService.saveRoomType(type);
+            ra.addFlashAttribute("success", "Đã cập nhật giá mới cho loại phòng " + type.getTypeName());
+        }
+        return "redirect:/admin/rooms/manage";
     }
 
     // Soft Delete: Vô hiệu hóa phòng

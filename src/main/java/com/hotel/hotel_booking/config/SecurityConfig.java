@@ -1,5 +1,6 @@
 package com.hotel.hotel_booking.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,10 +8,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.hotel.hotel_booking.service.CustomUserDetailsService;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+	@Autowired
+    private CustomUserDetailsService userDetailsService;
+	
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -60,8 +66,10 @@ public class SecurityConfig {
             
             // 5. Cấu hình ghi nhớ đăng nhập 
             .rememberMe(remember -> remember
-                .key("uniqueAndSecret")
-                .tokenValiditySeconds(86400) // Ghi nhớ trong 1 ngày
+                    .key("uniqueAndSecret") 
+                    .tokenValiditySeconds(86400) // 1 ngày
+                    .userDetailsService(userDetailsService) // Sử dụng CustomUserDetailsService
+                    .rememberMeParameter("remember-me") // Tên của checkbox trong login.html
             );
 
         return http.build();

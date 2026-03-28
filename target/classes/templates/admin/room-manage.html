@@ -2,30 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <th:block th:replace="~{fragments :: html_head}"></th:block>
-    <title>Admin - Quản lý khách sạn</title>
+    <title>Admin - Quản lý khách sạn | Luxury Hotel</title>
     <style>
         :root { --sidebar-width: 260px; --nav-height: 76px; }
-        body { background-color: #f4f7f6; }
+        body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
         .sidebar { 
             width: var(--sidebar-width); height: 100vh; position: fixed; 
             top: var(--nav-height); left: 0; background: #212529; padding-top: 20px; 
+            z-index: 100;
         }
-        .main-content { margin-left: var(--sidebar-width); padding: 30px; margin-top: 20px; }
-        .nav-link { color: rgba(255,255,255,0.7); margin-bottom: 5px; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; margin-top: 10px; }
+        .nav-link { color: rgba(255,255,255,0.7); margin-bottom: 5px; transition: 0.3s; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); border-radius: 8px; }
         .nav-link.active { background: #0d6efd !important; }
-        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; margin-bottom: 25px; }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; margin-bottom: 25px; overflow: hidden; }
         .table-v { vertical-align: middle; }
+        .status-badge { font-size: 0.75rem; padding: 5px 12px; border-radius: 20px; }
+        .img-preview { width: 60px; height: 40px; object-fit: cover; border-radius: 4px; background: #eee; }
     </style>
 </head>
 <body>
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="sidebar px-3">
+    <div class="sidebar px-3 no-print">
         <nav class="nav flex-column">
-            <a class="nav-link" href="#"><i class="fas fa-home me-2"></i> Dashboard</a>
-            <a class="nav-link active" href="#"><i class="fas fa-bed me-2"></i> Quản lý phòng</a>
-            <a class="nav-link" href="#"><i class="fas fa-ticket-alt me-2"></i> Quản lý Voucher</a>
+            <a class="nav-link" href="#"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
+            <a class="nav-link active" href="/admin/rooms/manage"><i class="fas fa-bed me-2"></i> Quản lý phòng & Giá</a>
+            <a class="nav-link" href="/admin/vouchers"><i class="fas fa-ticket-alt me-2"></i> Quản lý Voucher đơn</a>
             <a class="nav-link text-warning" th:href="@{/}"><i class="fas fa-arrow-left me-2"></i> Xem trang chủ</a>
         </nav>
     </div>
@@ -35,34 +38,40 @@
             
             <div class="card">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-gift me-2"></i>Danh sách Voucher hệ thống</h5>
-                    <button class="btn btn-sm btn-primary px-3 rounded-pill">Tạo Voucher mới</button>
+                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-tags me-2"></i>Thiết lập Loại phòng & Giá</h5>
+                    <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#typeModal" onclick="prepareAdd()">
+                        <i class="fas fa-plus me-1"></i> Thêm loại mới
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 table-v">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-4">Mã Code</th>
-                                    <th>Giảm giá</th>
-                                    <th>Ngày bắt đầu</th>
-                                    <th>Ngày hết hạn</th>
-                                    <th>Trạng thái</th>
-                                    <th class="text-end pe-4">Thao tác</th>
+                                    <th class="ps-4">Ảnh</th>
+                                    <th>Tên loại phòng</th>
+                                    <th>Giá hiện tại</th>
+                                    <th class="text-end pe-4">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="v : ${vouchers}">
-                                    <td class="ps-4"><code class="fw-bold text-danger" th:text="${v.voucherCode}">SUMMER2024</code></td>
-                                    <td><span class="fw-bold" th:text="${v.discountValue + (v.isPercentage ? '%' : ' $')}">10%</span></td>
-                                    <td th:text="${v.startDate}">2026-06-01</td>
-                                    <td th:text="${v.endDate}">2026-08-31</td>
+                                <tr th:each="type : ${roomTypes}">
+                                    <td class="ps-4">
+                                        <img th:src="${type.imageUrl}" class="img-preview" onerror="this.src='https://placehold.co/60x40?text=No+Img'">
+                                    </td>
                                     <td>
-                                        <span th:if="${v.isActive}" class="badge bg-success-subtle text-success border border-success">Đang chạy</span>
-                                        <span th:unless="${v.isActive}" class="badge bg-secondary-subtle text-secondary border border-secondary">Tạm dừng</span>
+                                        <div class="fw-bold" th:text="${type.typeName}">Single Room</div>
+                                        <small class="text-muted" th:text="${type.bedDescription}">Mô tả giường...</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark fs-6" th:text="'$' + ${type.basePrice}">$100.00</span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-sm btn-light"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                data-bs-toggle="modal" data-bs-target="#typeModal"
+                                                th:onclick="prepareEdit([[${type}]])">
+                                            <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -73,40 +82,33 @@
 
             <div class="card">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-door-open me-2 text-success"></i>Trạng thái phòng</h5>
+                    <h5 class="mb-0 fw-bold text-success"><i class="fas fa-door-open me-2"></i>Trạng thái vận hành từng phòng</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-striped mb-0 table-v">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">Phòng</th>
-                                    <th>Loại phòng</th>
-                                    <th>Giá gốc</th>
-                                    <th>Trạng thái</th>
+                                    <th class="ps-4">Số phòng</th>
+                                    <th>Thuộc loại</th>
+                                    <th>Trạng thái hiện tại</th>
                                     <th class="text-end pe-4">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="r : ${rooms}">
-                                    <td class="ps-4 fw-bold" th:text="${r.roomNumber}">101</td>
+                                    <td class="ps-4 fw-bold text-dark" th:text="${r.roomNumber}">101</td>
                                     <td th:text="${r.roomType.typeName}">Double Room</td>
                                     <td>
-                                        <form th:action="@{/admin/rooms/update-price}" method="post" class="d-flex" style="max-width: 150px;">
-                                            <div class="input-group input-group-sm">
-                                                <input type="number" step="0.01" class="form-control" name="price" th:value="${r.roomType.basePrice}">
-                                                <button class="btn btn-outline-primary" type="submit"><i class="fas fa-check"></i></button>
-                                            </div>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <span th:class="${r.isActive} ? 'badge bg-success' : 'badge bg-danger'" 
-                                              th:text="${r.isActive} ? 'Active' : 'Hidden'"></span>
+                                        <span th:if="${r.isActive}" class="badge bg-success status-badge">Đang hoạt động</span>
+                                        <span th:unless="${r.isActive}" class="badge bg-danger status-badge">Đang bảo trì/Ẩn</span>
                                     </td>
                                     <td class="text-end pe-4">
                                         <form th:action="@{'/admin/rooms/toggle/' + ${r.roomId}}" method="post">
-                                            <button type="submit" class="btn btn-sm" th:classappend="${r.isActive} ? 'btn-outline-danger' : 'btn-outline-success'">
-                                                <i th:class="${r.isActive} ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                            <button type="submit" class="btn btn-sm" 
+                                                    th:classappend="${r.isActive} ? 'btn-outline-danger' : 'btn-outline-success'">
+                                                <i th:class="${r.isActive} ? 'fas fa-eye-slash me-1' : 'fas fa-eye me-1'"></i>
+                                                <span th:text="${r.isActive} ? 'Ẩn phòng' : 'Hiện phòng'"></span>
                                             </button>
                                         </form>
                                     </td>
@@ -119,5 +121,65 @@
 
         </div>
     </div>
+
+    <div class="modal fade" id="typeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form th:action="@{/admin/rooms/types/save}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thông tin loại phòng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="roomTypeId" id="m_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên loại phòng</label>
+                        <input type="text" name="typeName" id="m_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả giường</label>
+                        <input type="text" name="bedDescription" id="m_bed" class="form-control" required placeholder="VD: 1 King Bed, 2 Single Beds">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giá cơ bản ($)</label>
+                            <input type="number" step="0.01" name="basePrice" id="m_price" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">URL Ảnh</label>
+                            <input type="text" name="imageUrl" id="m_img" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function prepareAdd() {
+            document.getElementById('modalTitle').innerText = "Thêm loại phòng mới";
+            document.getElementById('m_id').value = "";
+            document.getElementById('m_name').value = "";
+            document.getElementById('m_bed').value = "";
+            document.getElementById('m_price').value = "";
+            document.getElementById('m_img').value = "";
+        }
+
+        function prepareEdit(type) {
+            document.getElementById('modalTitle').innerText = "Chỉnh sửa: " + type.typeName;
+            document.getElementById('m_id').value = type.roomTypeId;
+            document.getElementById('m_name').value = type.typeName;
+            document.getElementById('m_bed').value = type.bedDescription;
+            document.getElementById('m_price').value = type.basePrice;
+            document.getElementById('m_img').value = type.imageUrl;
+        }
+    </script>
+
+    <script th:if="${success}">
+        alert("[[${success}]]");
+    </script>
 </body>
 </html>
