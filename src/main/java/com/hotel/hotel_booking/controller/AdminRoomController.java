@@ -1,5 +1,6 @@
 package com.hotel.hotel_booking.controller;
 
+import com.hotel.hotel_booking.entity.Room;
 import com.hotel.hotel_booking.entity.RoomType;
 import com.hotel.hotel_booking.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,19 +14,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminRoomController {
 
     @Autowired private RoomService roomService;
-
-    // Hiển thị danh sách loại phòng để quản lý giá/mô tả
-    @GetMapping("/types")
-    public String listRoomTypes(Model model) {
-        model.addAttribute("roomTypes", roomService.getAllRoomTypes());
-        return "admin/room-type-list";
-    }
-    //Update/Create loại phòng
+    /**
+     * Lưu hoặc cập nhật loại phòng.
+     * Xử lý trường hợp ID truyền lên là chuỗi rỗng từ form.
+     */
     @PostMapping("/types/save")
     public String saveRoomType(@ModelAttribute RoomType roomType, RedirectAttributes ra) {
         try {
-            // Hibernate sẽ tự động INSERT nếu ID null, hoặc UPDATE nếu ID đã tồn tại
-            roomService.saveRoomType(roomType); 
+            // Kiểm tra nếu ID <= 0 (do gán "" từ JS) thì đặt về null để Hibernate thực hiện INSERT
+            if (roomType.getRoomTypeId() != null && roomType.getRoomTypeId() <= 0) {
+                roomType.setRoomTypeId(null);
+            }
+            
+            roomService.saveRoomType(roomType);
             
             String msg = (roomType.getRoomTypeId() == null) ? "Thêm mới" : "Cập nhật";
             ra.addFlashAttribute("success", msg + " loại phòng thành công!");
@@ -33,6 +34,36 @@ public class AdminRoomController {
             ra.addFlashAttribute("error", "Lỗi lưu dữ liệu: " + e.getMessage());
         }
         return "redirect:/admin/rooms/manage";
+    }
+
+    /**
+     * Thêm một phòng vật lý mới và gán vào một Loại phòng cụ thể.
+     */
+    @PostMapping("/add")
+    public String addRoom(@RequestParam("roomNumber") String roomNumber, 
+                          @RequestParam("roomTypeId") Integer roomTypeId,
+                          RedirectAttributes ra) {
+        try {
+            Room newRoom = new Room();
+            newRoom.setRoomNumber(roomNumber);
+            newRoom.setIsActive(true);
+            
+            // Liên kết với RoomType thông qua ID
+            RoomType type = roomService.getRoomTypeById(roomTypeId);
+            newRoom.setRoomType(type);
+            
+            roomService.saveRoom(newRoom);
+            ra.addFlashAttribute("success", "Đã thêm phòng " + roomNumber);
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi thêm phòng: " + e.getMessage());
+        }
+        return "redirect:/admin/rooms/manage";
+    }
+    // Hiển thị danh sách loại phòng để quản lý giá/mô tả
+    @GetMapping("/types")
+    public String listRoomTypes(Model model) {
+        model.addAttribute("roomTypes", roomService.getAllRoomTypes());
+        return "admin/room-type-list";
     }
     @GetMapping("/manage")
     public String listRooms(Model model) {

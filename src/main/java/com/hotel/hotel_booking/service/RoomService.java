@@ -5,6 +5,7 @@ import com.hotel.hotel_booking.entity.RoomType;
 import com.hotel.hotel_booking.repository.RoomRepository;
 import com.hotel.hotel_booking.repository.RoomTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,8 +79,12 @@ public class RoomService {
             String typeName,
             Double maxPrice,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            String sortDir
     ) {
-        return roomTypeRepo.searchAvailableRoomTypes(typeName, maxPrice, checkIn, checkOut);
+        Sort sort = Sort.by("basePrice");
+        sort = "desc".equalsIgnoreCase(sortDir) ? sort.descending() : sort.ascending();
+        
+        return roomTypeRepo.searchAvailableRoomTypes(typeName, maxPrice, checkIn, checkOut, sort);
     }
 }

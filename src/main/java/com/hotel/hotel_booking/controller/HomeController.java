@@ -24,12 +24,18 @@ public class HomeController {
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut,
+            @RequestParam(defaultValue = "asc") String sortOrder, // Thêm tham số sort
             Model model) {
-
-        List<RoomType> roomTypes = roomService.searchAvailableRoomTypes(typeName, maxPrice, checkIn, checkOut);
+    	List<RoomType> allTypes = roomService.getAllRoomTypes();
+        model.addAttribute("allTypes", allTypes);
+        
+        // Truyền tham số sort xuống service
+    	if (checkIn == null) checkIn = LocalDate.now();
+    	if (checkOut == null) checkOut = checkIn.plusDays(1);
+        List<RoomType> roomTypes = roomService.searchAvailableRoomTypes(typeName, maxPrice, checkIn, checkOut, sortOrder);
         
         model.addAttribute("roomTypes", roomTypes);
-        
+        model.addAttribute("sortOrder", sortOrder);
         model.addAttribute("typeName", typeName);
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("checkIn", checkIn);

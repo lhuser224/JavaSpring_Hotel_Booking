@@ -111,11 +111,15 @@
                 </div>
                 <div class="col-lg-2 col-md-4">
                     <label class="form-label fw-bold text-secondary small">Hạng phòng</label>
-                    <select name="typeName" class="form-select bg-light border-0">
-                        <option value="">Tất cả hạng phòng</option>
-                        <option value="Single" th:selected="${typeName == 'Single'}">Single Room</option>
-                        <option value="Family" th:selected="${typeName == 'Family'}">Family Room</option>
-                    </select>
+					<select name="typeName" class="form-select bg-light border-0">
+					    <option value="">Tất cả hạng phòng							
+						</option>
+					    <option th:each="type : ${allTypes}" 
+					            th:value="${type.typeName}" 
+					            th:text="${type.typeName}"
+					            th:selected="${type.typeName == typeName}">
+					    </option>
+					</select>
                 </div>
                 <div class="col-lg-2 col-md-4">
                     <label class="form-label fw-bold text-secondary small">Sắp xếp theo giá</label>

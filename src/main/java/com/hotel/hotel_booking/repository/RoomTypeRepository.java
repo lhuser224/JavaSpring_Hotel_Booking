@@ -10,18 +10,21 @@ import java.util.List;
 public interface RoomTypeRepository extends JpaRepository<RoomType, Integer> {
 
     @Query("SELECT DISTINCT rt FROM RoomType rt " +
-           "JOIN Room r ON r.roomType.roomTypeId = rt.roomTypeId " +
-           "WHERE r.isActive = true " + 
-           "AND (:typeName IS NULL OR rt.typeName LIKE CONCAT('%', :typeName, '%')) " +
+           "JOIN rt.rooms r " + 
+           "WHERE r.isActive = true " +
+           "AND (:typeName IS NULL OR LOWER(rt.typeName) LIKE LOWER(CONCAT('%', :typeName, '%'))) " +
            "AND (:maxPrice IS NULL OR rt.basePrice <= :maxPrice) " +
-           "AND (:checkIn IS NULL OR :checkOut IS NULL OR rt.roomTypeId NOT IN (" +
-           "    SELECT res.roomType.roomTypeId FROM Reservation res " + 
-           "    WHERE res.status <> 'Cancelled' " +
-           "    AND (res.checkInDate < :checkOut AND res.checkOutDate > :checkIn)" +
-           "))")
+           "AND NOT EXISTS (" +
+           "    SELECT 1 FROM Reservation res " +
+           "    WHERE res.roomType = rt " + 
+           "    AND res.status <> 'Cancelled' " +
+           "    AND res.checkInDate < :checkOut " +
+           "    AND res.checkOutDate > :checkIn" +
+           ")")
     List<RoomType> searchAvailableRoomTypes(
             @Param("typeName") String typeName, 
             @Param("maxPrice") Double maxPrice, 
             @Param("checkIn") LocalDate checkIn, 
-            @Param("checkOut") LocalDate checkOut);
+            @Param("checkOut") LocalDate checkOut,
+            org.springframework.data.domain.Sort sort);
 }
