@@ -43,6 +43,13 @@ public class Reservation {
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ReservationAddOn> reservationAddOns;
+    
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private Room room; 
+
+    public Room getRoom() { return room; }
+    public void setRoom(Room room) { this.room = room; }
 
     public Reservation(){}
     

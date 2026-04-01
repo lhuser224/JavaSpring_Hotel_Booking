@@ -7,7 +7,6 @@
         :root { --sidebar-width: 260px; --nav-height: 76px; }
         body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
         
-        /* Sidebar layout đồng bộ với trang quản lý phòng */
         .sidebar { 
             width: var(--sidebar-width); height: 100vh; position: fixed; 
             top: var(--nav-height); left: 0; background: #212529; padding-top: 20px; 
@@ -48,17 +47,17 @@
             <div class="row align-items-center mb-4">
                 <div class="col-md-6">
                     <h3 class="fw-bold mb-0">Hệ thống Voucher & Đặt phòng</h3>
-                    <p class="text-muted mb-0">Xác minh thông tin khách và vận hành Check-in/out</p>
+                    <p class="text-muted mb-0">Vận hành Check-in/out và gán phòng vật lý</p>
                 </div>
                 <div class="col-md-6">
-                    <form th:action="@{/admin/vouchers}" method="get" class="d-flex gap-2">
+<!--                    <form th:action="@{/admin/vouchers}" method="get" class="d-flex gap-2">
                         <input type="hidden" name="status" th:value="${currentStatus}">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
                             <input type="text" name="keyword" th:value="${keyword}" class="form-control border-start-0" placeholder="Tên khách, SĐT hoặc Mã Voucher...">
                             <button type="submit" class="btn btn-primary px-4">Tìm kiếm</button>
                         </div>
-                    </form>
+                    </form>-->
                 </div>
             </div>
 
@@ -66,24 +65,16 @@
                 <div class="card-body p-2">
                     <ul class="nav nav-pills">
                         <li class="nav-item">
-                            <a class="nav-link" th:classappend="${currentStatus == null || currentStatus == '' ? 'active' : ''}" 
-                               href="/admin/vouchers">Tất cả</a>
+                            <a class="nav-link" th:classappend="${currentStatus == null || currentStatus == '' ? 'active' : ''}" href="/admin/vouchers">Tất cả</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" th:classappend="${currentStatus == 'Confirmed' ? 'active bg-primary' : ''}" 
-                               href="/admin/vouchers?status=Confirmed">Chờ nhận phòng</a>
+                            <a class="nav-link" th:classappend="${currentStatus == 'Confirmed' ? 'active bg-primary' : ''}" href="/admin/vouchers?status=Confirmed">Chờ nhận phòng</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" th:classappend="${currentStatus == 'Checked_In' ? 'active bg-success' : ''}" 
-                               href="/admin/vouchers?status=Checked_In">Đang ở</a>
+                            <a class="nav-link" th:classappend="${currentStatus == 'Checked_In' ? 'active bg-success' : ''}" href="/admin/vouchers?status=Checked_In">Đang ở</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" th:classappend="${currentStatus == 'Checked_Out' ? 'active bg-secondary' : ''}" 
-                               href="/admin/vouchers?status=Checked_Out">Đã hoàn thành</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" th:classappend="${currentStatus == 'Cancelled' ? 'active bg-danger' : ''}" 
-                               href="/admin/vouchers?status=Cancelled">Đã hủy</a>
+                            <a class="nav-link" th:classappend="${currentStatus == 'Checked_Out' ? 'active bg-secondary' : ''}" href="/admin/vouchers?status=Checked_Out">Đã trả phòng</a>
                         </li>
                     </ul>
                 </div>
@@ -100,34 +91,36 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">Thông tin Voucher</th>
+                                    <th class="ps-4">Voucher & ID</th>
                                     <th>Khách hàng</th>
-                                    <th>Thông tin lưu trú</th>
+                                    <th>Chi tiết phòng</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
-                                    <th class="text-end pe-4">Hành động Admin</th>
+                                    <th class="text-end pe-4">Thao tác Admin</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="res : ${vouchers}">
                                     <td class="ps-4">
                                         <div class="voucher-code mb-1" th:text="${res.confirmationVoucher}">VOU-ABC123</div>
-                                        <small class="text-muted">ID: #<span th:text="${res.reservationId}"></span></small>
+                                        <small class="text-muted">ID đơn: #<span th:text="${res.reservationId}"></span></small>
                                     </td>
                                     <td>
                                         <div class="fw-bold" th:text="${res.user.fullName}">Nguyễn Văn A</div>
                                         <div class="small text-muted"><i class="fas fa-phone-alt me-1"></i> <span th:text="${res.user.phone}"></span></div>
                                     </td>
                                     <td>
-                                        <div class="small fw-bold text-dark" th:text="${res.roomType.typeName}">Double Room</div>
-                                        <div class="small text-muted">
-                                            <span th:text="${res.checkInDate}"></span> 
-                                            <i class="fas fa-long-arrow-alt-right mx-1"></i> 
-                                            <span th:text="${res.checkOutDate}"></span>
+                                        <div class="small fw-bold">
+                                            <span th:text="${res.roomType.typeName}">Double Room</span>
+                                            <span th:if="${res.room != null}" class="badge bg-dark ms-1" th:text="'Phòng ' + ${res.room.room_number}">101</span>
                                         </div>
+                                        <div class="small text-muted">
+                                            <span th:text="${res.checkInDate}"></span> ➔ <span th:text="${res.checkOutDate}"></span>
+                                        </div>
+                                        <div class="small text-primary">SL: <span th:text="${res.roomQuantity}">1</span></div>
                                     </td>
                                     <td>
-                                        <span class="fw-bold text-primary" th:text="${#numbers.formatCurrency(res.totalAmount)}">$200.00</span>
+                                        <span class="fw-bold text-primary" th:text="${#numbers.formatCurrency(res.totalAmount)}">$0.00</span>
                                     </td>
                                     <td>
                                         <span th:if="${res.status == 'Confirmed'}" class="badge bg-primary-subtle text-primary status-badge">Confirmed</span>
@@ -137,36 +130,22 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <a th:href="@{'/bookings/voucher/' + ${res.reservationId}}" class="btn btn-sm btn-outline-info" title="Xem chi tiết">
+                                            <a th:href="@{'/admin/vouchers/detail/' + ${res.reservationId}}" class="btn btn-sm btn-outline-info" title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i>
                                             </a>
 
                                             <form th:if="${res.status == 'Confirmed'}" th:action="@{'/admin/vouchers/check-in/' + ${res.reservationId}}" method="post">
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Xác nhận khách đã đến và nhận phòng?')">
-                                                    <i class="fas fa-sign-in-alt me-1"></i> Check-in
-                                                </button>
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Xác nhận khách nhận phòng?')">Check-in</button>
                                             </form>
 
                                             <form th:if="${res.status == 'Checked_In'}" th:action="@{'/admin/vouchers/check-out/' + ${res.reservationId}}" method="post">
-                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Khách trả phòng và thanh toán đầy đủ?')">
-                                                    <i class="fas fa-sign-out-alt me-1"></i> Check-out
-                                                </button>
-                                            </form>
-                                            
-                                            <form th:if="${res.status == 'Confirmed'}" th:action="@{'/admin/vouchers/cancel/' + ${res.reservationId}}" method="post">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn hủy voucher này?')">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
+                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Xác nhận khách trả phòng?')">Check-out</button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(vouchers)}">
-                                    <td colspan="6" class="text-center py-5">
-                                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="mb-3 opacity-50">
-                                        <p class="text-muted">Không tìm thấy đơn đặt phòng nào phù hợp.</p>
-                                        <a href="/admin/vouchers" class="btn btn-sm btn-link text-decoration-none">Xóa bộ lọc</a>
-                                    </td>
+                                    <td colspan="6" class="text-center py-5 text-muted">Không tìm thấy dữ liệu đặt phòng.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -177,11 +156,8 @@
     </div>
 
     <script th:inline="javascript">
-        // Bạn có thể thêm JS để auto-dismiss alert sau 3 giây
         window.setTimeout(function() {
-            $(".alert").fadeTo(500, 0).slideUp(500, function(){
-                $(this).remove(); 
-            });
+            $(".alert").fadeTo(500, 0).slideUp(500, function(){ $(this).remove(); });
         }, 3000);
     </script>
 </body>
